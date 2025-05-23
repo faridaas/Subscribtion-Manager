@@ -5,12 +5,11 @@ import { toast } from "react-toastify";
 import OverlayPanel from "../components/OverlayPanel";
 import Form from "../components/Form";
 import "../styles/LoginOrRegister.css";
-
-const API_URL = 'http://localhost:5000/api';
+import { authService } from "../services/authService";
 
 const LoginOrRegister = ({ route }) => {
   const [mode, setMode] = useState(route === "/login/" ? "login" : "register");
-  const [loading, setLoading] = useState(false); // to show a spinner or something when it's actually loading
+  const [loading, setLoading] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,29 +23,11 @@ const LoginOrRegister = ({ route }) => {
     setLoading(true);
 
     try {
-      const endpoint = mode === "login" ? "auth/login" : "auth/register";
-      const payload = mode === "login" 
-        ? { email, password }
-        : { 
-            email, 
-            password,
-            firstName,
-            lastName
-          };
-
-      const response = await fetch(`${API_URL}/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'An error occurred');
+      let data;
+      if (mode === "login") {
+        data = await authService.login(email, password);
+      } else {
+        data = await authService.register({ email, password, firstName, lastName });
       }
 
       // Store the JWT token
